@@ -1,0 +1,15 @@
+apiVersion: federation.maistra.io/v1
+kind: ImportedServiceSet
+metadata:
+  name: stage-mesh
+  namespace: prod-mesh
+spec:
+  importRules:
+    - importAsLocal: false
+      nameSelector:
+        alias:
+          name: details-v2
+          namespace: prod-bookinfo
+        name: details
+        namespace: stage-bookinfo
+      type: NameSelector

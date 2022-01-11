@@ -1,0 +1,22 @@
+kind: ServiceMeshPeer
+apiVersion: federation.maistra.io/v1
+metadata:
+  name: prod-mesh
+  namespace: stage-mesh
+spec:
+  remote:
+    addresses:
+    - stage-mesh-ingress.prod-mesh.svc.cluster.local
+    discoveryPort: 8188
+    servicePort: 15443
+  gateways:
+    ingress:
+      name: prod-mesh-ingress
+    egress:
+      name: prod-mesh-egress
+  security:
+    trustDomain: prod-mesh.local
+    clientID: prod-mesh.local/ns/prod-mesh/sa/stage-mesh-egress-service-account
+    certificateChain:
+      kind: ConfigMap
+      name: prod-mesh-ca-root-cert

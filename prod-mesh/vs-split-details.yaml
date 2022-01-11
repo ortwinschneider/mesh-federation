@@ -1,0 +1,17 @@
+kind: VirtualService
+apiVersion: networking.istio.io/v1alpha3
+metadata:
+  name: details
+  namespace: prod-bookinfo
+spec:
+  hosts:
+    - details.prod-bookinfo.svc.cluster.local
+  http:
+    - route:
+        - destination:
+            host: details.prod-bookinfo.svc.cluster.local
+            subset: v1
+          weight: 80
+        - destination:
+            host: details-v2.prod-bookinfo.svc.stage-mesh-imports.local
+          weight: 20

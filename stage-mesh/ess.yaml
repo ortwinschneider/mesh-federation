@@ -1,0 +1,15 @@
+kind: ExportedServiceSet
+apiVersion: federation.maistra.io/v1
+metadata:
+  name: prod-mesh
+  namespace: stage-mesh
+spec:
+  exportRules:
+  - type: LabelSelector
+    labelSelector:
+      namespace: stage-bookinfo
+      selector:
+        matchLabels:
+          app: details
+      alias:
+        namespace: bookinfo

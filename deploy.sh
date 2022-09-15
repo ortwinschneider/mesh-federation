@@ -56,7 +56,7 @@ log "Installing VirtualService for prod-mesh"
 oc apply -n prod-bookinfo -f prod-mesh/vs-mirror-details.yaml
 # oc apply -f prod-mesh/vs-split-details.yaml
 
-log "INSTALLATION COMPLETE
+log 'INSTALLATION COMPLETE
 
 Run the following command in the prod-mesh to check the connection status:
 
@@ -77,6 +77,6 @@ Check if services from stage-mesh are exported:
 To see federation in action, create some load in the bookinfo app in prod-mesh. For example:
 
   BOOKINFO_URL=$(oc -n prod-mesh get route istio-ingressgateway -o json | jq -r .spec.host)
-  while true; do sleep 1; curl http://$BOOKINFO_URL/productpage &> /dev/null; done
+  while true; do sleep 1; curl http://${BOOKINFO_URL}/productpage &> /dev/null; done
 
-"
+'

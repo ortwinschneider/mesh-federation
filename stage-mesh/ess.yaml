@@ -5,11 +5,7 @@ metadata:
   namespace: stage-mesh
 spec:
   exportRules:
-  - type: LabelSelector
-    labelSelector:
+  - type: NameSelector
+    nameSelector:
       namespace: stage-bookinfo
-      selector:
-        matchLabels:
-          app: details
-      alias:
-        namespace: bookinfo
+      name: "*"

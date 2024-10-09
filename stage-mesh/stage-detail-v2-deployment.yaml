@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: details
-          image: 'maistra/examples-bookinfo-details-v1:2.0.0'
+          image: 'quay.io/maistra/examples-bookinfo-details-v1:2.6.0'
           ports:
             - containerPort: 9080
               protocol: TCP

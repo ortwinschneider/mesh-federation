@@ -24,33 +24,41 @@ oc apply -f stage-mesh/smcp.yaml
 oc apply -f stage-mesh/smmr.yaml
 
 log "Waiting for prod-mesh installation to complete"
-oc wait --for condition=Ready -n prod-mesh smmr/default --timeout 300s
+oc wait --for condition=Ready -n prod-mesh smcp/prod-mesh --timeout 300s
 
 log "Waiting for stage-mesh installation to complete"
-oc wait --for condition=Ready -n stage-mesh smmr/default --timeout 300s
+oc wait --for condition=Ready -n stage-mesh smcp/stage-mesh --timeout 300s
 
 log "Installing details v2 service in stage-mesh"
 oc apply -n stage-bookinfo -f stage-mesh/stage-detail-v2-deployment.yaml
 oc apply -n stage-bookinfo -f stage-mesh/stage-detail-v2-service.yaml
 
 log "Installing bookinfo application in prod-mesh"
-oc apply -n prod-bookinfo -f https://raw.githubusercontent.com/Maistra/istio/maistra-2.0/samples/bookinfo/platform/kube/bookinfo.yaml
-oc apply -n prod-bookinfo -f https://raw.githubusercontent.com/Maistra/istio/maistra-2.0/samples/bookinfo/networking/bookinfo-gateway.yaml
-oc apply -n prod-bookinfo -f https://raw.githubusercontent.com/Maistra/istio/maistra-2.0/samples/bookinfo/networking/destination-rule-all.yaml
+oc apply -n prod-bookinfo -f https://raw.githubusercontent.com/Maistra/istio/maistra-2.6/samples/bookinfo/platform/kube/bookinfo.yaml
+oc apply -n prod-bookinfo -f https://raw.githubusercontent.com/Maistra/istio/maistra-2.6/samples/bookinfo/networking/bookinfo-gateway.yaml
+oc apply -n prod-bookinfo -f https://raw.githubusercontent.com/Maistra/istio/maistra-2.6/samples/bookinfo/networking/destination-rule-all.yaml
 
 log "Retrieving Istio CA Root certificates"
-PROD_MESH_CERT=$(oc get configmap -n prod-mesh istio-ca-root-cert -o jsonpath='{.data.root-cert\.pem}' | sed ':a;N;$!ba;s/\n/\\\n    /g')
-STAGE_MESH_CERT=$(oc get configmap -n stage-mesh istio-ca-root-cert -o jsonpath='{.data.root-cert\.pem}' | sed ':a;N;$!ba;s/\n/\\\n    /g')
+# This is for Mac or BSD based systems: gsed ':a;N;$!ba;s/\n/\\\n    /g'
+#PROD_MESH_CERT=$(oc get configmap -n prod-mesh istio-ca-root-cert -o jsonpath='{.data.root-cert\.pem}' | sed ':a;N;$!ba;s/\n/\\\n    /g')
+#STAGE_MESH_CERT=$(oc get configmap -n stage-mesh istio-ca-root-cert -o jsonpath='{.data.root-cert\.pem}' | sed ':a;N;$!ba;s/\n/\\\n    /g')
+oc get configmap -n prod-mesh istio-ca-root-cert -o jsonpath='{.data.root-cert\.pem}' > prod-mesh-cert.crt
+oc get configmap -n stage-mesh istio-ca-root-cert -o jsonpath='{.data.root-cert\.pem}' > stage-mesh-cert.crt
 
 log "Enabling federation for prod-mesh"
-sed "s:{{STAGE_MESH_CERT}}:$STAGE_MESH_CERT:g" prod-mesh/stage-mesh-ca-root-cert.yaml | oc apply -f -
+#sed "s:{{STAGE_MESH_CERT}}:$STAGE_MESH_CERT:g" prod-mesh/stage-mesh-ca-root-cert.yaml | oc apply -f -
+oc create configmap stage-mesh-ca-root-cert -n prod-mesh --from-file=root-cert.pem=stage-mesh-cert.crt
 oc apply -f prod-mesh/smp.yaml
 oc apply -f prod-mesh/iss.yaml
 
 log "Enabling federation for stage-mesh"
-sed "s:{{PROD_MESH_CERT}}:$PROD_MESH_CERT:g" stage-mesh/prod-mesh-ca-root-cert.yaml | oc apply -f -
+#sed "s:{{PROD_MESH_CERT}}:$PROD_MESH_CERT:g" stage-mesh/prod-mesh-ca-root-cert.yaml | oc apply -f -
+oc create configmap prod-mesh-ca-root-cert -n stage-mesh --from-file=root-cert.pem=prod-mesh-cert.crt
 oc apply -f stage-mesh/smp.yaml
 oc apply -f stage-mesh/ess.yaml
+
+rm prod-mesh-cert.crt
+rm stage-mesh-cert.crt
 
 log "Installing VirtualService for prod-mesh"
 oc apply -n prod-bookinfo -f prod-mesh/vs-mirror-details.yaml
